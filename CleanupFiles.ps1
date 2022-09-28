@@ -1,17 +1,22 @@
+# Path of the directory to clean up
 $Path = “.”
 
+# Path of log file to write to
 $LogFile = ".\script.log"
 
+# Function to write to a log
 Function LogWrite {
    Param ([string]$LogString)
    Add-Content $LogFile -value $LogString
 }
 
-
+# For each of the current directory plus subdirectories...
 $(Get-Item $Path; Get-ChildItem -Recurse -Directory -Path $Path) | ForEach {
 
+	# Get file names containing ".newVer" and sort by latest written to files
 	$NewVerFiles = Get-ChildItem -Path $($_.FullName) | Where Name -like "*.newVer*" | Sort LastWriteTime -Descending
 
+	# Obtain the root filename of each distinct file above
 	$SplitFileNames = New-Object System.Collections.ArrayList
 	ForEach($File in $NewVerFiles) {
 		If(-Not $SplitFileNames.Contains($File.Name.Split(".")[0])) {
@@ -19,6 +24,7 @@ $(Get-Item $Path; Get-ChildItem -Recurse -Directory -Path $Path) | ForEach {
 		}
 	}
 
+	# Loop through the array and identify the latest file, then put it back in its original place
 	For($i=0; $i -lt $SplitFileNames.Count; $i++) {
 		$SplitFileName = $SplitFileNames[$i]
 		$NewestFiles = Get-ChildItem -Path $($_.FullName) | Where Name -like "$SplitFileName.newVer*" | Sort LastWriteTime -Descending
@@ -49,5 +55,4 @@ $(Get-Item $Path; Get-ChildItem -Recurse -Directory -Path $Path) | ForEach {
 		}
 		LogWrite ""
 	}
-	
 }
